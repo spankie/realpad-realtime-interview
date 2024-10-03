@@ -55,6 +55,19 @@ if (navigator.geolocation) {
   console.log("Geolocation is not supported by this browser.");
 }
 
+function getAverageTemperatures(temperature_2m: number[]) {
+  let average_temparatures = [];
+  let avg = 0;
+  for (let i = 0; i < temperature_2m.length; i++) {
+    avg += temperature_2m[i];
+    if (i % 24 == 23) {
+      average_temparatures.push(parseFloat((avg / 24).toFixed(2)));
+      avg = 0;
+    }
+  }
+  return average_temparatures;
+}
+
 watch(weather, () => {
   // get the time from the weather.current.time string "2024-10-02T17:00"
   const [_, time_part] = weather.value.current.time.split('T');
@@ -68,25 +81,14 @@ watch(weather, () => {
     }));
 
   xaxis.value = [...new Set(weather.value.hourly.time.map((item) => item.split('T')[0]))];
-  let average_temparatures = [];
-  let avg = 0;
-  for (let i = 0; i < weather.value.hourly.temperature_2m.length; i++) {
-    console.log(i, avg);
-    avg += weather.value.hourly.temperature_2m[i];
-    if (i % 24 == 23) {
-      average_temparatures.push(parseFloat((avg / 24).toFixed(2)));
-      avg = 0;
-    }
-  }
-  console.log(average_temparatures)
-  yaxis.value = average_temparatures;
+  yaxis.value = getAverageTemperatures(weather.value.hourly.temperature_2m);
 });
 
 </script>
 
 <template>
   <div
-    class="flex flex-col items-center justify-center w-screen min-h-screen text-gray-700 p-10 bg-gradient-to-br from-pink-200 via-purple-200 to-indigo-200 space-y-10">
+    class="flex flex-col items-center justify-center w-screen min-h-screen text-gray-700 p-10 bg-gradient-to-br from-pink-200 via-purple-200 to-indigo-200 space-y-8">
 
     <div class="w-full max-w-screen-sm bg-white p-10 rounded-xl ring-8 ring-white ring-opacity-40">
       <div class="flex justify-between">
