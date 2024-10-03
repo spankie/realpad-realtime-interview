@@ -25,7 +25,6 @@ public class RealtimeWeatherService {
 
   @Cacheable(CACHE_NAME)
   public WeatherData getWeather(float longitude, float latitude) throws Exception {
-    log.error("getting weather");
     try {
       return weatherService.getWeather(longitude, latitude);
     } catch (Exception e) {
