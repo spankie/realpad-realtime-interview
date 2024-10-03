@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { WeatherTimeline, IWeather } from '@/schema/weather';
 import { ref, watch } from 'vue';
+import Chart from '@/components/Chart.vue';
 
 const weather = ref<IWeather>({
   current: {
@@ -20,6 +21,9 @@ const loading = ref(false);
 const longitude = ref(52.48);
 const latitude = ref(-1.88);
 const next_five_hours = ref<WeatherTimeline[]>([]);
+const xaxis = ref<string[]>([]);
+const yaxis = ref<number[]>([]);
+
 
 const fetchWeather = async (lon: number, lat: number) => {
   if (!lon) lon = longitude.value;
@@ -62,13 +66,27 @@ watch(weather, () => {
       time: time.split('T')[1],
       temperature: weather.value.hourly.temperature_2m[hour_number + index],
     }));
+
+  xaxis.value = [...new Set(weather.value.hourly.time.map((item) => item.split('T')[0]))];
+  let average_temparatures = [];
+  let avg = 0;
+  for (let i = 0; i < weather.value.hourly.temperature_2m.length; i++) {
+    console.log(i, avg);
+    avg += weather.value.hourly.temperature_2m[i];
+    if (i % 24 == 23) {
+      average_temparatures.push(parseFloat((avg / 24).toFixed(2)));
+      avg = 0;
+    }
+  }
+  console.log(average_temparatures)
+  yaxis.value = average_temparatures;
 });
 
 </script>
 
 <template>
   <div
-    class="flex flex-col items-center justify-center w-screen min-h-screen text-gray-700 p-10 bg-gradient-to-br from-pink-200 via-purple-200 to-indigo-200 ">
+    class="flex flex-col items-center justify-center w-screen min-h-screen text-gray-700 p-10 bg-gradient-to-br from-pink-200 via-purple-200 to-indigo-200 space-y-10">
 
     <div class="w-full max-w-screen-sm bg-white p-10 rounded-xl ring-8 ring-white ring-opacity-40">
       <div class="flex justify-between">
@@ -97,6 +115,9 @@ watch(weather, () => {
           <span class="font-semibold mt-1 text-sm">{{ item.time }}</span>
         </div>
       </div>
+    </div>
+    <div v-if="xaxis.length && yaxis.length" class="w-full max-w-screen-sm bg-white p-10 rounded-xl ring-8 ring-white ring-opacity-40">
+      <Chart title="Temperature forecast for the next 7 days" name="Temperature" :xaxis="xaxis" :yaxis="yaxis" :suffix="weather.current_units.temperature_2m" />
     </div>
   </div>
 </template>
